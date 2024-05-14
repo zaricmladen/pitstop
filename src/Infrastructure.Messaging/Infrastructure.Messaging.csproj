@@ -5,16 +5,26 @@
     <AssemblyName>Pitstop.Infrastructure.Messaging</AssemblyName>
     <RootNamespace>Pitstop.Infrastructure.Messaging</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>5.0.0</Version>
-    <AssemblyVersion>5.0.0.0</AssemblyVersion>
-    <FileVersion>5.0.0.0</FileVersion>
+    <Version>6.0.0</Version>
+    <AssemblyVersion>6.0.0.0</AssemblyVersion>
+    <FileVersion>6.0.0.0</FileVersion>
     <Title>Pitstop.Infrastructure.Messaging</Title>
     <Description>Infrastructure package for Pitstop sample application that contains helpers for interacting with the RabbitMQ message-broker used by the application.</Description>
-    <PackageProjectUrl>https://github.com/EdwinVW/pitstop/tree/master/src/Infrastructure.Messaging</PackageProjectUrl>
-    <Authors>Edwin van Wijk</Authors>
+    <PackageProjectUrl>https://github.com/zaricmladen/pitstop/tree/main/src/Infrastructure.Messaging</PackageProjectUrl>
+    <Authors>Mladen Zaric</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <ProduceReferenceAssembly>True</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <GenerateAssemblyInfo>True</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>
