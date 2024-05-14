@@ -32,14 +32,6 @@ services:
       - "25:25"
       - "4000:80"
 
-  logserver:
-    image: datalust/seq:latest
-    container_name: logserver
-    ports:
-      - "5341:80"
-    environment:
-      - ACCEPT_EULA=Y
-
   vehiclemanagementapi:
     image: pitstop/vehiclemanagementapi:1.0
     build: VehicleManagementAPI
@@ -50,6 +42,7 @@ services:
       - "5000"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - SERVICE_NAME=VehicleManagementAPI
 
   customermanagementapi:
     image: pitstop/customermanagementapi:1.0
@@ -61,6 +54,7 @@ services:
       - "5100"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - SERVICE_NAME=CustomerManagementAPI
 
   workshopmanagementapi:
     image: pitstop/workshopmanagementapi:1.0
@@ -72,6 +66,7 @@ services:
       - "5200"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - SERVICE_NAME=WorkshopManagementAPI
 
   auditlogservice:
     image: pitstop/auditlogservice:1.0
@@ -81,6 +76,7 @@ services:
       - rabbitmq
     environment:
       - DOTNET_ENVIRONMENT=Production
+      - SERVICE_NAME=AuditlogService
 
   invoiceservice:
     image: pitstop/invoiceservice:1.0
@@ -92,6 +88,7 @@ services:
       - mailserver
     environment:
       - DOTNET_ENVIRONMENT=Production
+      - SERVICE_NAME=InvoiceService
 
   notificationservice:
     image: pitstop/notificationservice:1.0
@@ -103,6 +100,7 @@ services:
       - mailserver
     environment:
       - DOTNET_ENVIRONMENT=Production
+      - SERVICE_NAME=NotificationService
 
   timeservice:
     image: pitstop/timeservice:1.0
@@ -112,6 +110,7 @@ services:
       - rabbitmq
     environment:
       - DOTNET_ENVIRONMENT=Production
+      - SERVICE_NAME=TimeService
 
   workshopmanagementeventhandler:
     image: pitstop/workshopmanagementeventhandler:1.0
@@ -122,6 +121,7 @@ services:
       - sqlserver
     environment:
       - DOTNET_ENVIRONMENT=Production
+      - SERVICE_NAME=WorkshopManagementEventHandler
 
   webapp:
     image: pitstop/webapp:1.0
@@ -135,9 +135,64 @@ services:
       - "7005:7005"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - SERVICE_NAME=WebApp
+    
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.0
+    ports:
+      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9300:9300"
+    restart: on-failure
+    environment:
+      - cluster.name=jaeger-cluster
+      - discovery.type=single-node
+      - http.host=0.0.0.0
+      - transport.host=127.0.0.1
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+  jaeger-collector:
+    image: jaegertracing/jaeger-collector
+    ports:
+      - "14269:14269"
+      - "14268:14268"
+      - "14267:14267"
+      - "9411:9411"
+    restart: on-failure
+    environment:
+      - SPAN_STORAGE_TYPE=elasticsearch
+    command: [
+      "--es.server-urls=http://elasticsearch:9200",
+      "--es.num-shards=1",
+      "--es.num-replicas=0",
+      "--log-level=error"
+    ]
+    depends_on:
+      - elasticsearch
+
+  jaeger-query:
+    image: jaegertracing/jaeger-query
+    environment:
+      - SPAN_STORAGE_TYPE=elasticsearch
+      - no_proxy=localhost
+    ports:
+      - "16686:16686"
+      - "16687:16687"
+    restart: on-failure
+    command: [
+      "--es.server-urls=http://elasticsearch:9200",
+      "--span-storage.type=elasticsearch",
+      "--log-level=debug"
+    ]
+    depends_on:
+      - elasticsearch
+
 
 volumes:
   sqlserverdata:
     external: true
   rabbitmqdata:
     external: true
+  esdata:
+    driver: local

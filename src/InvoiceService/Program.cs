@@ -1,7 +1,13 @@
-﻿IHost host = Host
+﻿
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+IHost host = Host
     .CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
     {
+        string serviceName = Environment.GetEnvironmentVariable("SERVICE_NAME") ?? "InvoiceService";
+
         services.UseRabbitMQMessageHandler(hostContext.Configuration);
 
         services.AddTransient<IInvoiceRepository>((svc) =>
@@ -21,11 +27,27 @@
         });
 
         services.AddHostedService<InvoiceWorker>();
+
+        services.AddOpenTelemetry().WithTracing(tcb =>
+        {
+            tcb
+            .AddSource(serviceName)
+            .SetResourceBuilder(
+                ResourceBuilder.CreateDefault()
+                    .AddService(serviceName: serviceName, serviceVersion: "1.0"))
+            .AddSqlClientInstrumentation()
+            .AddOtlpExporter(o =>
+                    {
+                        o.Endpoint = new Uri("http://jaeger-collector:4317");
+                    });
+        });
+
+
     })
-    .UseSerilog((hostContext, loggerConfiguration) =>
+    /*.UseSerilog((hostContext, loggerConfiguration) =>
     {
         loggerConfiguration.ReadFrom.Configuration(hostContext.Configuration);
-    })
+    })*/
     .UseConsoleLifetime()
     .Build();
 

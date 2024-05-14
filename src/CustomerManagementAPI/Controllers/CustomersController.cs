@@ -1,15 +1,25 @@
-﻿namespace Pitstop.Application.CustomerManagementAPI.Controllers;
+﻿using System.Diagnostics;
+
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
+using Pitstop.Infrastructure.Messaging;
+
+namespace Pitstop.Application.CustomerManagementAPI.Controllers;
 
 [Route("/api/[controller]")]
 public class CustomersController : Controller
 {
     IMessagePublisher _messagePublisher;
     CustomerManagementDBContext _dbContext;
+    ActivitySource _activitySource;
+    
 
-    public CustomersController(CustomerManagementDBContext dbContext, IMessagePublisher messagePublisher)
+    public CustomersController(CustomerManagementDBContext dbContext, IMessagePublisher messagePublisher, ActivitySource activitySource)
     {
         _dbContext = dbContext;
         _messagePublisher = messagePublisher;
+        _activitySource = activitySource;
+       
     }
 
     [HttpGet]
@@ -22,6 +32,7 @@ public class CustomersController : Controller
     [Route("{customerId}", Name = "GetByCustomerId")]
     public async Task<IActionResult> GetByCustomerId(string customerId)
     {
+        
         var customer = await _dbContext.Customers.FirstOrDefaultAsync(c => c.CustomerId == customerId);
         if (customer == null)
         {
@@ -42,7 +53,7 @@ public class CustomersController : Controller
                 _dbContext.Customers.Add(customer);
                 await _dbContext.SaveChangesAsync();
 
-                // send event
+                //send event
                 CustomerRegistered e = command.MapToCustomerRegistered();
                 await _messagePublisher.PublishMessageAsync(e.MessageType, e, "");
 

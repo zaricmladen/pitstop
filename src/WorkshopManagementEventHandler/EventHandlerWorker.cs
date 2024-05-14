@@ -1,14 +1,17 @@
-﻿namespace Pitstop.WorkshopManagementEventHandler;
+﻿
+namespace Pitstop.WorkshopManagementEventHandler;
 
 public class EventHandlerWorker : IHostedService, IMessageHandlerCallback
 {
     WorkshopManagementDBContext _dbContext;
     IMessageHandler _messageHandler;
+    
 
     public EventHandlerWorker(IMessageHandler messageHandler, WorkshopManagementDBContext dbContext)
     {
         _messageHandler = messageHandler;
         _dbContext = dbContext;
+ 
     }
 
     public void Start()

@@ -1,7 +1,14 @@
-﻿namespace Pitstop.Infrastructure.Messaging;
+﻿using System.Diagnostics;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
+
+namespace Pitstop.Infrastructure.Messaging;
 
 public class RabbitMQMessageHandler : IMessageHandler
 {
+    private static readonly ActivitySource ActivitySource = new(nameof(RabbitMQMessageHandler));
+    private static readonly TextMapPropagator Propagator = Propagators.DefaultTextMapPropagator;
+
     private const int DEFAULT_PORT = 5672;
     private readonly List<string> _hosts;
     private readonly string _username;
@@ -91,13 +98,50 @@ public class RabbitMQMessageHandler : IMessageHandler
 
     private Task<bool> HandleEvent(BasicDeliverEventArgs ea)
     {
-        // determine messagetype
-        string messageType = Encoding.UTF8.GetString((byte[])ea.BasicProperties.Headers["MessageType"]);
+         // Extract the PropagationContext of the upstream parent from the message headers.
+        var parentContext = Propagator.Extract(default, ea.BasicProperties, this.ExtractTraceContextFromBasicProperties);
+        Baggage.Current = parentContext.Baggage;
 
-        // get body
-        string body = Encoding.UTF8.GetString(ea.Body.ToArray());
+        // Start an activity with a name following the semantic convention of the OpenTelemetry messaging specification.
+        // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/messaging/messaging-spans.md#span-name
+        var activityName = $"{ea.RoutingKey} receive";
+        using var activity = ActivitySource.StartActivity(activityName, ActivityKind.Consumer, parentContext.ActivityContext);
 
-        // call callback to handle the message
-        return _callback.HandleMessageAsync(messageType, body);
+        try {
+               // determine messagetype
+            string messageType = Encoding.UTF8.GetString((byte[])ea.BasicProperties.Headers["MessageType"]);
+
+            // get body
+            string body = Encoding.UTF8.GetString(ea.Body.ToArray());
+
+            activity?.SetTag("message", body);
+
+            // call callback to handle the message
+            return _callback.HandleMessageAsync(messageType, body);
+        }
+
+        catch(Exception) {
+            Log.Information("Message processing failed.");
+            throw;
+        }
+     
+    }
+
+    private IEnumerable<string> ExtractTraceContextFromBasicProperties(IBasicProperties props, string key)
+    {
+        try
+        {
+            if (props.Headers.TryGetValue(key, out var value))
+            {
+                var bytes = value as byte[];
+                return new[] { Encoding.UTF8.GetString(bytes) };
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Information(ex, "Failed to extract trace context.");
+        }
+
+        return Enumerable.Empty<string>();
     }
 }

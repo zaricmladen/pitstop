@@ -1,14 +1,35 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+var builder = WebApplication.CreateBuilder(args);
+string serviceName = Environment.GetEnvironmentVariable("SERVICE_NAME") ?? "WebApp";
+// Configure important OpenTelemetry settings, the console exporter, and instrumentation library
+builder.Services.AddOpenTelemetry().WithTracing(tcb =>
+{
+    tcb
+    .AddSource(serviceName)
+    .SetResourceBuilder(
+        ResourceBuilder.CreateDefault()
+            .AddService(serviceName: serviceName, serviceVersion: "1.0"))
+    .AddAspNetCoreInstrumentation()
+    .AddHttpClientInstrumentation()
+    .AddOtlpExporter(o =>
+            {
+                o.Endpoint = new Uri("http://jaeger-collector:4317");
+            });
+});
+
 
 //builder.UseKestrel();
 builder.Host.UseContentRoot(Directory.GetCurrentDirectory());
 
 // setup logging
-builder.Host.UseSerilog((context, logContext) => 
+/*builder.Host.UseSerilog((context, logContext) => 
     logContext
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.WithMachineName()
-);
+);*/
 
 // Add framework services
 builder.Services

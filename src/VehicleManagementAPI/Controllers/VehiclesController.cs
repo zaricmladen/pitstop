@@ -1,4 +1,6 @@
-﻿namespace Pitstop.VehicleManagement.Controllers;
+﻿
+
+namespace Pitstop.VehicleManagement.Controllers;
 
 [Route("/api/[controller]")]
 public class VehiclesController : Controller
@@ -6,11 +8,13 @@ public class VehiclesController : Controller
     private const string NUMBER_PATTERN = @"^((\d{1,3}|[a-z]{1,3})-){2}(\d{1,3}|[a-z]{1,3})$";
     IMessagePublisher _messagePublisher;
     VehicleManagementDBContext _dbContext;
+    
 
     public VehiclesController(VehicleManagementDBContext dbContext, IMessagePublisher messagePublisher)
     {
         _dbContext = dbContext;
         _messagePublisher = messagePublisher;
+        
     }
 
     [HttpGet]

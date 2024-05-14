@@ -1,4 +1,6 @@
-﻿namespace Pitstop.WorkshopManagementAPI.Controllers;
+﻿
+
+namespace Pitstop.WorkshopManagementAPI.Controllers;
 
 [Route("/api/[controller]")]
 public class RefDataController : Controller
@@ -6,10 +8,12 @@ public class RefDataController : Controller
     ICustomerRepository _customerRepo;
     IVehicleRepository _vehicleRepo;
 
+
     public RefDataController(ICustomerRepository customerRepo, IVehicleRepository vehicleRepo)
     {
         _customerRepo = customerRepo;
         _vehicleRepo = vehicleRepo;
+       
     }
 
     [HttpGet]

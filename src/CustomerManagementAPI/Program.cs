@@ -1,11 +1,38 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using System.Diagnostics;
+
+var builder = WebApplication.CreateBuilder(args);
+string serviceName = Environment.GetEnvironmentVariable("SERVICE_NAME") ?? "CustomerManagementAPI";
+
+
+builder.Services.AddSingleton(new ActivitySource(serviceName));
+// Configure important OpenTelemetry settings, the console exporter, and instrumentation library
+builder.Services.AddOpenTelemetry().WithTracing(tcb =>
+{
+    tcb
+    .AddSource(serviceName)
+    .SetResourceBuilder(
+        ResourceBuilder.CreateDefault()
+            .AddService(serviceName: serviceName, serviceVersion: "1.0"))
+    .AddAspNetCoreInstrumentation()
+    .AddHttpClientInstrumentation()
+    .AddEntityFrameworkCoreInstrumentation()
+    .AddOtlpExporter(o =>
+            {
+                o.Endpoint = new Uri("http://jaeger-collector:4317");
+            });
+});
+
+
 
 // setup logging
-builder.Host.UseSerilog((context, logContext) => 
+/*builder.Host.UseSerilog((context, logContext) => 
     logContext
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.WithMachineName()
-);
+);*/
 
 // add DBContext
 var sqlConnectionString = builder.Configuration.GetConnectionString("CustomerManagementCN");

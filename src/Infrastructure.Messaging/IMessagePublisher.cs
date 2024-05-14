@@ -1,4 +1,6 @@
-﻿namespace Pitstop.Infrastructure.Messaging;
+﻿using System.Diagnostics;
+
+namespace Pitstop.Infrastructure.Messaging;
 
 public interface IMessagePublisher
 {
@@ -9,4 +11,5 @@ public interface IMessagePublisher
     /// <param name="message">The message to publish.</param>
     /// <param name="routingKey">The routingkey to use (RabbitMQ specific).</param>
     Task PublishMessageAsync(string messageType, object message, string routingKey);
+    Task PublishMessageAsync(string messageType, object message, string routingKey, ActivitySource activitySource);
 }

@@ -1,4 +1,8 @@
-﻿namespace Pitstop.WorkshopManagementAPI.Controllers;
+﻿
+using OpenTelemetry;
+using System.Runtime.CompilerServices;
+
+namespace Pitstop.WorkshopManagementAPI.Controllers;
 
 [Route("/api/[controller]")]
 public class WorkshopPlanningController : Controller
@@ -6,6 +10,7 @@ public class WorkshopPlanningController : Controller
     private readonly IEventSourceRepository<WorkshopPlanning> _planningRepo;
     private readonly IPlanMaintenanceJobCommandHandler _planMaintenanceJobCommandHandler;
     private readonly IFinishMaintenanceJobCommandHandler _finishMaintenanceJobCommandHandler;
+
 
     public WorkshopPlanningController(
         IEventSourceRepository<WorkshopPlanning> planningRepo,
@@ -15,6 +20,7 @@ public class WorkshopPlanningController : Controller
         _planningRepo = planningRepo;
         _planMaintenanceJobCommandHandler = planMaintenanceJobCommandHandler;
         _finishMaintenanceJobCommandHandler = finishMaintenanceJobCommand;
+        
     }
 
     [HttpGet]

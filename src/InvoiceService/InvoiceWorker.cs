@@ -1,4 +1,6 @@
-﻿namespace Pitstop.InvoiceService;
+﻿
+
+namespace Pitstop.InvoiceService;
 
 public class InvoiceWorker : IHostedService, IMessageHandlerCallback
 {
@@ -6,12 +8,14 @@ public class InvoiceWorker : IHostedService, IMessageHandlerCallback
     private IMessageHandler _messageHandler;
     private IInvoiceRepository _repo;
     private IEmailCommunicator _emailCommunicator;
+    
 
     public InvoiceWorker(IMessageHandler messageHandler, IInvoiceRepository repo, IEmailCommunicator emailCommunicator)
     {
         _messageHandler = messageHandler;
         _repo = repo;
         _emailCommunicator = emailCommunicator;
+        
     }
 
     public Task StartAsync(CancellationToken cancellationToken)

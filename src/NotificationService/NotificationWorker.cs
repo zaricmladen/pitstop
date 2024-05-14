@@ -1,4 +1,6 @@
-﻿namespace Pitstop.NotificationService;
+﻿
+
+namespace Pitstop.NotificationService;
 
 public class NotificationWorker : IHostedService, IMessageHandlerCallback
 {
@@ -11,6 +13,7 @@ public class NotificationWorker : IHostedService, IMessageHandlerCallback
         _messageHandler = messageHandler;
         _repo = repo;
         _emailNotifier = emailNotifier;
+   
     }
 
     public Task StartAsync(CancellationToken cancellationToken)

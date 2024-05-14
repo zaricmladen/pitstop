@@ -1,4 +1,6 @@
-﻿namespace Pitstop.TimeService;
+﻿
+
+namespace Pitstop.TimeService;
 
 public class TimeWorker : IHostedService
 {
@@ -6,6 +8,7 @@ public class TimeWorker : IHostedService
     CancellationTokenSource _cancellationTokenSource;
     Task _task;
     IMessagePublisher _messagePublisher;
+    
 
     public TimeWorker(IMessagePublisher messagePublisher)
     {

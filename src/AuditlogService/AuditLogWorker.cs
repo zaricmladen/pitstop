@@ -1,13 +1,17 @@
-﻿namespace Pitstop.AuditlogService;
+﻿
+
+namespace Pitstop.AuditlogService;
 
 public class AuditLogWorker : IHostedService, IMessageHandlerCallback
 {
     IMessageHandler _messageHandler;
     private string _logPath;
+    //private readonly ITelemetry _telemetry;
 
     public AuditLogWorker(IMessageHandler messageHandler, AuditlogWorkerConfig config)
     {
         _messageHandler = messageHandler;
+
         _logPath = config.LogPath;
 
         if (!Directory.Exists(_logPath))
@@ -30,6 +34,7 @@ public class AuditLogWorker : IHostedService, IMessageHandlerCallback
 
     public async Task<bool> HandleMessageAsync(string messageType, string message)
     {
+        /*Add activity*/
         string logMessage = $"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffffff")} - {message}{Environment.NewLine}";
         string logFile = Path.Combine(_logPath, $"{DateTime.Now.ToString("yyyy-MM-dd")}-auditlog.txt");
         await File.AppendAllTextAsync(logFile, logMessage);

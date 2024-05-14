@@ -1,11 +1,34 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using System.Security.Authentication.ExtendedProtection;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+
+var builder = WebApplication.CreateBuilder(args);
+string serviceName = Environment.GetEnvironmentVariable("SERVICE_NAME") ?? "WorkshopManagementAPI";
+
+// Configure important OpenTelemetry settings, the console exporter, and instrumentation library
+builder.Services.AddOpenTelemetry().WithTracing(tcb =>
+{
+    tcb
+    .AddSource(serviceName)
+    .SetResourceBuilder(
+        ResourceBuilder.CreateDefault()
+            .AddService(serviceName: serviceName, serviceVersion: "1.0"))
+    .AddAspNetCoreInstrumentation()
+    .AddHttpClientInstrumentation()
+    .AddEntityFrameworkCoreInstrumentation()
+    .AddOtlpExporter(o =>
+            {
+                o.Endpoint = new Uri("http://jaeger-collector:4317");
+            });
+});
+
 
 // setup logging
-builder.Host.UseSerilog((context, logContext) => 
+/*builder.Host.UseSerilog((context, logContext) => 
     logContext
         .ReadFrom.Configuration(builder.Configuration)
         .Enrich.WithMachineName()
-);
+);*/
 
 // add repo
 var eventStoreConnectionString = builder.Configuration.GetConnectionString("EventStoreCN");
